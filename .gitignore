@@ -1,0 +1,21 @@
+# Environment
+.venv/
+__pycache__/
+*.pyc
+*.egg-info/
+.ipynb_checkpoints/
+.DS_Store
+
+# catboost scratch dir (select_features writes this even when told not to)
+catboost_info/
+
+# Fitted model artifacts - regenerate with `python run_full_search.py` (~2h).
+# Excluded because they total 18 MB and git keeps binaries in history forever.
+models/*.pkl
+models/*.json
+
+# Superseded exploratory work, kept on disk but not in version control.
+archive/
+
+# Derived dataset produced by the archived EDA notebook; not used by the main one.
+data/dengue_prepared.csv

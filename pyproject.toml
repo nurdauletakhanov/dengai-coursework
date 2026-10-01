@@ -1,0 +1,29 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "dengai"
+version = "0.1.0"
+description = "Pipeline components for the DrivenData DengAI competition"
+requires-python = ">=3.10"
+dependencies = [
+    "numpy",
+    "pandas",
+    "scikit-learn",
+    "statsmodels",
+    "pyyaml",
+]
+
+[project.optional-dependencies]
+# Heavy extras - the package imports these lazily, so it works without them.
+catboost = ["catboost"]
+prophet  = ["prophet"]
+full     = ["catboost", "prophet", "cloudpickle", "tqdm_joblib"]
+
+[tool.setuptools]
+packages = ["DengAI", "DengAI.models"]
+include-package-data = true
+
+[tool.setuptools.package-data]
+DengAI = ["../configs/*.yaml"]

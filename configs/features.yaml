@@ -1,0 +1,59 @@
+# Feature engineering configuration.
+# Every mapping below is the __init__ kwargs of the object it configures, expanded
+# with **. Rename a constructor parameter and this file breaks loudly -- which is the
+# point. Values were previously hard-coded across notebook cells 4, 25, 45, 51 and 62.
+
+random_seed: 2022
+
+columns:
+  # NDVI quadrants. San Juan's are heavily missing (the NE pixel falls over the
+  # Atlantic), which is why only San Juan treats them seasonally -- see imputation.
+  ndvi: [ndvi_ne, ndvi_nw, ndvi_se, ndvi_sw]
+
+  # The only weather features handed to Prophet / SARIMAX.
+  time_series:
+    - reanalysis_air_temp_k_mean_4w
+    - reanalysis_specific_humidity_g_per_kg_mean_4w
+    - reanalysis_relative_humidity_percent_mean_4w
+    - precipitation_amt_mm_sum_4w
+
+# ---- WeatherHistoryTransformer(**weather_history) ---------------------------
+# lag_columns is derived in code as mean_columns + sum_columns, so the lists
+# cannot drift apart.
+weather_history:
+  mean_columns:                      # these get rolling MEANS
+    - reanalysis_relative_humidity_percent
+    - reanalysis_air_temp_k
+    - reanalysis_specific_humidity_g_per_kg
+    - station_avg_temp_c
+    - station_min_temp_c
+    - station_max_temp_c
+  sum_columns:                       # rainfall accumulates; it does not average
+    - precipitation_amt_mm
+    - station_precip_mm
+  lags:    [1, 2, 4, 8, 10, 20, 26]
+  windows: [4, 8, 10, 12, 16, 26]
+
+# ---- DengueImputer ----------------------------------------------------------
+imputation:
+  # Columns filled from week-of-year training medians rather than interpolated.
+  seasonal_columns_by_city:
+    sj: [ndvi_ne, ndvi_nw, ndvi_se, ndvi_sw]
+    iq: []                           # Iquitos NDVI is near-complete: interpolate
+
+# ---- model_features(df, drop=...) ------------------------------------------
+# reanalysis_sat_precip_amt_mm is a verified byte-for-byte duplicate of
+# precipitation_amt_mm. `year` is deliberately KEPT as a feature.
+model_features:
+  drop: [city, week_start_date, weekofyear, reanalysis_sat_precip_amt_mm]
+
+# ---- CatBoostFeatureSelector(**feature_selection) ---------------------------
+feature_selection:
+  n_features: 15
+
+# ---- per-branch column lists ------------------------------------------------
+branches:
+  # Input to the `seasonal` branch. `year` must come from this COLUMN, never from
+  # isocalendar().year -- the two disagree on 10 train and 5 test rows at Jan-1
+  # boundaries, which would misassign those weeks and bias the annual level.
+  calendar_columns: [year, weekofyear]
