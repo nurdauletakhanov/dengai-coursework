@@ -19,3 +19,5 @@ archive/
 
 # Derived dataset produced by the archived EDA notebook; not used by the main one.
 data/dengue_prepared.csv
+
+# Presentation build artifacts are committed (small, ~70 KB each)
