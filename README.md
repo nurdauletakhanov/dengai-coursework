@@ -18,6 +18,8 @@ configs/
   features.yaml                   column groups, lags/windows, per-city imputation
   models.yaml                     per-model params, grids, branch, artifact names
 data/                             competition CSVs
+experiments/                      side experiments that are not part of the main pipeline
+presentation/                     slide decks and handouts (markdown + PDF)
 models/                           8 fitted pipelines (.pkl) + best_params_models.json
 submission.csv                    competition submission
 run_full_search.py                rebuild every model from scratch (~2h)
