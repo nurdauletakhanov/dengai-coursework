@@ -13,91 +13,83 @@ $$\text{MAE} = \frac{1}{n}\sum_{i=1}^{n}\bigl|\,\hat{y}_i - y_i\,\bigr|$$
 
 The average number of cases we are off by, per week.
 
-- Reported over all **416 test weeks** (260 San Juan + 156 Iquitos)
+- One number over all **416 test weeks** (260 San Juan + 156 Iquitos)
 - Lower is better; a perfect model scores 0
-- Both cities are pooled into one number, so **San Juan dominates** --- it has 63% of the
-  test weeks *and* roughly four times the case counts
+- **San Juan dominates**: 63% of the weeks and about four times the cases
 
-## Why MAE and not RMSE
-
-The target is extremely skewed:
-
-| | San Juan | Iquitos |
-|---|---|---|
-| mean cases/week | 34.2 | 7.6 |
-| **median** | **19** | **5** |
-| max | 461 | 116 |
-| **skewness** | **4.48** | **4.00** |
-
-In both cities the **worst 10% of weeks hold 43% of all cases**.
-
-## What "skewed" actually means
+## The target is skewed
 
 ![Weekly dengue cases: most weeks are quiet, a few outbreak weeks form a long tail](figures/target_skew.png)
 
-## What "skewed" actually means (cont.)
+San Juan: **mean 34, median 19**, 73% of weeks below the mean.
+Skewness **4.5** (San Juan) and **4.0** (Iquitos).
 
-Most weeks have few cases; a handful of outbreak weeks have hundreds. The distribution is
-lopsided, with a **long tail to the right**.
+::: notes
+Mean cases per week are 34.2 in San Juan and 7.6 in Iquitos, but the median week has only
+19 and 5; the maxima are 461 and 116. In both cities the worst 10% of weeks hold 43% of all
+cases.
 
-- **The mean gets pulled toward the tail.** San Juan's mean is 34 cases, but a typical
-  (median) week has 19. About **73% of weeks are below the mean**.
-- **Skewness is a number for this lopsidedness.** 0 means symmetric, like a bell curve;
-  above 1 already counts as strongly skewed. Ours is **4.5 and 4.0**.
-- **Everyday analogy:** income. A few billionaires raise the *average* income, but the
-  *median* still describes the typical person.
+Skewness is a number for this lopsidedness: 0 means symmetric, like a bell curve; above 1
+already counts as strongly skewed. Ours is 4.5 and 4.0.
 
-For us this means that the rare outbreak weeks would dominate any metric that punishes
-big errors heavily.
+Everyday analogy: income. A few billionaires raise the *average* income, but the *median*
+still describes the typical person. For us this means that the rare outbreak weeks would
+dominate any metric that punishes big errors heavily.
+:::
 
-## Why MAE and not RMSE (cont.)
+## Why MAE and not RMSE
 
-RMSE squares the errors, so a single epidemic week with 461 cases contributes as much as
-**~500 ordinary weeks** being off by one.
+- RMSE squares errors: one 461-case week counts like **~500 ordinary weeks off by one**
+- RMSE is dragged into fitting a few outbreaks; **MAE weights every week equally**
+- MAE is minimised by the **median**, RMSE by the **mean** --- for skewed counts the
+  median is the robust target
+- Consequence: good models here are *conservative*
 
-- Under RMSE the model is dragged into fitting a handful of outbreaks
-- MAE weights every week equally
-- Statistically: **MAE is minimised by the conditional median, RMSE by the mean** ---
-  and for a skewed count distribution the median is the more robust target
+::: notes
+Under RMSE the model concentrates on the handful of epidemic weeks and pays little
+attention to the hundreds of ordinary ones. MAE treats a miss of 10 in a quiet week exactly
+like a miss of 10 in an outbreak week.
 
-This also explains a behaviour we see later: good models here are *conservative*.
+Statistically, the prediction that minimises expected absolute error is the conditional
+median; squared error is minimised by the conditional mean, which for a right-skewed
+distribution sits far above the typical week. This also explains a behaviour we see later:
+the models that do well on this metric predict the quiet-week level and rarely chase peaks.
+:::
 
 # Models
 
 ## The pipeline has four branches
 
-Different model families need different preprocessing, so `make_city_pipeline` builds one of
-four shapes:
+`make_city_pipeline` builds one of four shapes, because model families need different
+preprocessing:
 
 | Branch | Steps | Models |
-|---|---|---|
+|----------------|------------------------------|-----------------|
 | `tree` | impute → history → cyclical → select → model | CatBoost, RandomForest |
 | `dense` | tree steps **+ impute + scale** | Ridge, Lasso |
 | `time_series` | impute → history → date + scaled weather | Prophet, SARIMAX |
 | `seasonal` | calendar columns only | Seasonal median, Shape×level |
 
-## Why `dense` exists
+## Why four branches
 
-The `tree` branch leaves **NaNs** in the lag/rolling warm-up --- the first 26 weeks have no
-26-week history.
+**`dense`** --- the lag/rolling warm-up leaves **NaNs** in the first 26 weeks
 
-- Tree models (sklearn $\geq$ 1.4) **handle NaN natively**
-- `RidgeCV` raises `ValueError: Input X contains NaN`
+- Tree models handle NaN natively; `RidgeCV` raises `ValueError`
+- So linear models get `SimpleImputer(median)` + `StandardScaler`
 
-So linear models get two extra steps: `SimpleImputer(median)` then `StandardScaler`.
-Scaling matters for them too, since Ridge and Lasso penalise coefficients and are not
-scale-invariant.
+**`seasonal`** --- the calendar baselines need `year` and `weekofyear`, which the tree
+branch drops
 
-## Why `seasonal` exists
+- They **never see the weather**: the baseline any weather model must beat
 
-The tree branch **drops** `city`, `week_start_date` and `weekofyear` before the model.
+::: notes
+Scaling matters for the linear models too: Ridge and Lasso penalise coefficient sizes and
+are not scale-invariant, so unscaled features would be penalised unevenly.
 
-But the two calendar baselines need exactly those columns. Rather than weaken the main
-branch, they get their own: a `ColumnTransformer` passing through `year` and `weekofyear`,
-nothing else.
-
-These models **never see the weather at all** --- which is the point: they are the baseline
-any weather-driven model should have to beat.
+The tree branch drops `city`, `week_start_date` and `weekofyear` before the model. Rather
+than weaken that branch, the two calendar models get their own: a `ColumnTransformer`
+passing through `year` and `weekofyear` and nothing else.
+:::
 
 ## The nine models
 
@@ -131,72 +123,60 @@ any weather-driven model should have to beat.
 | Ridge | 24.46 | 5.48 |
 | SARIMAX | 24.56 | 4.61 |
 
-Different winners per city --- so the final submission uses **CatBoost for San Juan,
-SARIMAX for Iquitos**.
+Different winners per city --- the submission uses **CatBoost for San Juan, SARIMAX for
+Iquitos**.
 
-## Side experiment --- XGBoost and feature selection
-
-A separate notebook (`experiments/xgboost_feature_selection.ipynb`) asks whether all 127
-engineered features help, or whether fewer would do: XGBoost tuned on chronological CV
-(3 folds of 52 weeks) with three feature-selection strategies.
-
-| Feature selection | San Juan | Iquitos |
-|---|---|---|
-| All 127 features | 17.8 | 7.2 |
-| XGBoost importance, top 100 | 17.0 | 7.1 |
-| **Ridge RFE** | **14.5** (50 features) | **6.7** (10 features) |
-
-CV MAE. Recursive elimination with a *linear* model chose features better than the trees'
-own importances did.
-
-## XGBoost on the holdout year
-
-![XGBoost (blue) against actual cases (black), 52-week holdout](figures/xgb_holdout_predictions.png){width=92%}
-
-Holdout MAE **17.21** in San Juan (third; CatBoost 15.02) and **3.54** in Iquitos: the
-**best weather-based model** there (SARIMAX 4.61, CatBoost 6.27), with only ten
-long-window features. It follows the 2007 outbreak but under-predicts both peaks.
+::: notes
+XGBoost comes from a separate notebook (`experiments/xgboost_feature_selection.ipynb`)
+that compared feature-selection strategies on chronological CV (3 folds of 52 weeks).
+CV MAE: all 127 features 17.8 (San Juan) / 7.2 (Iquitos); the top 100 by XGBoost
+importance 17.0 / 7.1; recursive elimination with Ridge 14.5 with 50 features / 6.7 with
+10 features. On the same 52-week holdout the RFE model scores 17.21 and 3.54: third in
+San Juan, and the best weather-based model in Iquitos, where ten long-window features
+(8--26-week temperature means, 26-week rainfall and humidity, the annual sine and cosine)
+suffice. A linear model chose features better than the trees' own importances did.
+:::
 
 ## What drives the CatBoost predictions?
 
-![CatBoost feature importance, grouped by what each feature measures](figures/catboost_feature_importance.png)
+![CatBoost feature importance by feature family](figures/catboost_feature_importance.png){width=80%}
 
-## Feature importance --- what the model is telling us
+- **Temperature and humidity: about 70%** of importance in both cities
+- Top features are **8--26-week averages**, not this week's weather
+- **`year`: about 19%** --- levels drift between years for non-weather reasons
 
-- **Temperature and humidity carry about 70%** of the importance in both cities.
-  Mosquitoes breed and bite more when it is warm and humid.
-- **Every top feature is a long average over 8--26 weeks**, not this week's weather. Weather
-  acts with a delay: the mosquito population has to build up first.
-- **Rainfall matters less than expected** (about 8%). Temperature and humidity already
-  capture most of what the rain does.
-- **`year` alone takes about 19%.** Case levels drift from year to year for reasons that are
-  not weather.
+::: notes
+Mosquitoes breed and bite more when it is warm and humid. Weather acts with a delay: the
+mosquito population has to build up first, which is why the long windows win.
+
+Rainfall matters less than expected (about 8%): temperature and humidity already capture
+most of what the rain does.
 
 Importance tells us what the model *uses*, not what *causes* dengue.
+:::
 
 ## Why weather is not the whole story
 
-Feature importance and the results table point the same way. In Iquitos the calendar-only
-`Shape × level` model (3.39) beats every weather model:
+- Climate predicts **when** cases rise within a year, not **how many**
+- In Iquitos the calendar-only `Shape × level` (3.39) beats every weather model
+- Epidemic size depends on the circulating **serotype** and population immunity ---
+  neither is in the data
 
-- Climate reliably predicts **when** cases rise within a year
-- It explains very little about **how many**
-
-Epidemic magnitude is driven by which dengue **serotype** is circulating and by population
-immunity --- neither is in this dataset.
-
-So a model that predicts the *shape* from the calendar and refuses to guess the *level* from
-weather is not naive. It is **honest about what the data supports**.
+::: notes
+Feature importance and the results table point the same way. A model that predicts the
+shape of the year from the calendar and refuses to guess the level from weather is not
+naive; it is honest about what the data supports.
+:::
 
 ## Summary
 
-**Metrics** --- MAE, because the target is skewed (skewness 4.5): a few outbreak weeks
-would dominate RMSE.
+- **Metrics** --- MAE, because the target is skewed (4.5): a few outbreak weeks would
+  dominate RMSE
+- **Models** --- nine models in four pipeline branches; winners differ by city
+- **Feature importance** --- months of temperature and humidity; weather says *when*,
+  not *how many*
 
-**Models** --- nine models across four pipeline branches, because tree, linear, time-series
-and calendar families need different preprocessing. Winners differ by city. A side
-experiment with XGBoost confirms that feature selection matters: 50 features beat 127 in
-San Juan, and 10 are enough in Iquitos.
-
-**Feature importance** --- CatBoost relies mostly on temperature and humidity averaged over
-months. Weather tells us *when* cases rise, not *how many*.
+::: notes
+A side experiment with XGBoost confirms that feature selection matters: 50 features beat
+127 in San Juan, and 10 are enough in Iquitos.
+:::
