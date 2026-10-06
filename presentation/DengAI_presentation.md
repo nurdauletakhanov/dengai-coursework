@@ -132,6 +132,29 @@ any weather-driven model should have to beat.
 Different winners per city --- so the final submission uses **CatBoost for San Juan,
 SARIMAX for Iquitos**.
 
+## Side experiment --- XGBoost and feature selection
+
+A separate notebook (`experiments/xgboost_feature_selection.ipynb`) asks whether all 127
+engineered features help, or whether fewer would do: XGBoost tuned on chronological CV
+(3 folds of 52 weeks) with three feature-selection strategies.
+
+| Feature selection | San Juan | Iquitos |
+|---|---|---|
+| All 127 features | 17.8 | 7.2 |
+| XGBoost importance, top 100 | 17.0 | 7.1 |
+| **Ridge RFE** | **14.5** (50 features) | **6.7** (10 features) |
+
+CV MAE. Recursive elimination with a *linear* model chose features better than the trees'
+own importances did.
+
+## XGBoost on the holdout year
+
+![XGBoost (blue) against actual cases (black), 52-week holdout](figures/xgb_holdout_predictions.png){width=92%}
+
+Holdout MAE **17.21** in San Juan (third; CatBoost 15.02) and **3.54** in Iquitos: the
+**best weather-based model** there (SARIMAX 4.61, CatBoost 6.27), with only ten
+long-window features. It follows the 2007 outbreak but under-predicts both peaks.
+
 ## What drives the CatBoost predictions?
 
 ![CatBoost feature importance, grouped by what each feature measures](figures/catboost_feature_importance.png)
@@ -169,7 +192,9 @@ weather is not naive. It is **honest about what the data supports**.
 would dominate RMSE.
 
 **Models** --- eight models across four pipeline branches, because tree, linear, time-series
-and calendar families need different preprocessing. Winners differ by city.
+and calendar families need different preprocessing. Winners differ by city. A side
+experiment with XGBoost confirms that feature selection matters: 50 features beat 127 in
+San Juan, and 10 are enough in Iquitos.
 
 **Feature importance** --- CatBoost relies mostly on temperature and humidity averaged over
 months. Weather tells us *when* cases rise, not *how many*.
