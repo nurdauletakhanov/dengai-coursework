@@ -99,19 +99,20 @@ nothing else.
 These models **never see the weather at all** --- which is the point: they are the baseline
 any weather-driven model should have to beat.
 
-## The eight models
+## The nine models
 
 \scriptsize
 
 | Model | Family | Core assumption |
-|---|---|---|
-| CatBoost | gradient boosting | non-linear interactions of lagged weather |
+|----------------|--------------------|------------------------------------|
+| CatBoost | gradient boosting | non-linear effects of lagged weather |
+| XGBoost | gradient boosting | as CatBoost, on RFE-selected features |
 | RandomForest | bagged trees | same, without boosting |
 | Ridge | linear + L2 | smooth linear response, all features shrunk |
 | Lasso | linear + L1 | linear, but most features are irrelevant |
 | Prophet | additive time series | trend + annual seasonality + regressors |
 | SARIMAX | ARIMA + exog | autocorrelated errors + Fourier seasonality |
-| Seasonal median | calendar only | this week behaves like this week in past years |
+| Seasonal median | calendar only | this week behaves like the same week in past years |
 | Shape × level | calendar only | seasonal *shape* × typical annual *total* |
 
 \normalsize
@@ -122,6 +123,7 @@ any weather-driven model should have to beat.
 |---|---|---|
 | **CatBoost** | **15.02** | 6.27 |
 | RandomForest | 15.16 | 8.39 |
+| XGBoost + RFE | 17.21 | 3.54 |
 | **Shape × level** | 20.72 | **3.39** |
 | Lasso | 21.16 | 4.50 |
 | Prophet | 21.78 | 7.16 |
@@ -191,7 +193,7 @@ weather is not naive. It is **honest about what the data supports**.
 **Metrics** --- MAE, because the target is skewed (skewness 4.5): a few outbreak weeks
 would dominate RMSE.
 
-**Models** --- eight models across four pipeline branches, because tree, linear, time-series
+**Models** --- nine models across four pipeline branches, because tree, linear, time-series
 and calendar families need different preprocessing. Winners differ by city. A side
 experiment with XGBoost confirms that feature selection matters: 50 features beat 127 in
 San Juan, and 10 are enough in Iquitos.
