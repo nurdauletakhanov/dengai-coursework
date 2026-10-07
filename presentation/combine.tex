@@ -1,0 +1,16 @@
+% Merge the three parts into DengAI_presentation.pdf on one 16:9 page size.
+% Build from this folder:  pdflatex combine.tex && mv combine.pdf DengAI_presentation.pdf
+% Part 2 is built from DengAI_presentation.md with
+%   pandoc DengAI_presentation.md -t beamer -V theme=metropolis -V aspectratio=169 \
+%     --slide-level=2 --pdf-engine=xelatex -M toc=false -o DengAI_presentation_part2.pdf
+% Part 3 was exported with every bullet-reveal step as its own page; the list below keeps
+% the completed page of each of its 12 slides. Update it if Part 3 is re-exported.
+\documentclass{article}
+\usepackage[paperwidth=960bp,paperheight=540bp,margin=0bp]{geometry}
+\usepackage{pdfpages}
+\pagestyle{empty}
+\begin{document}
+\includepdf[pages=-]{DengAI_presentation_part1.pdf}
+\includepdf[pages=-]{DengAI_presentation_part2.pdf}
+\includepdf[pages={1,5,7,11,15,17,22,26,34,39,49,51}]{dengai_presentation_part3.pdf}
+\end{document}

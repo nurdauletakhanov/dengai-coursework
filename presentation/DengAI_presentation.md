@@ -19,7 +19,7 @@ The average number of cases we are off by, per week.
 
 ## The target is skewed
 
-![Weekly dengue cases: most weeks are quiet, a few outbreak weeks form a long tail](figures/target_skew.png)
+![Weekly cases: most weeks are quiet, a few outbreak weeks form a long tail](figures/target_skew.png){width=70%}
 
 San Juan: **mean 34, median 19**, 73% of weeks below the mean.
 Skewness **4.5** (San Juan) and **4.0** (Iquitos).
