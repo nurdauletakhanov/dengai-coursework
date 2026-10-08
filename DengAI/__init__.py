@@ -12,6 +12,7 @@ __version__ = "0.1.0"
 
 from .config import Cfg, load_config
 from .data import load_raw, split_cities
+from .evaluate import duplicate_report, missing_report
 from .pipelines import build_pipelines, make_city_pipeline
 from .selectors import CatBoostFeatureSelector
 from .transformers import (
@@ -27,6 +28,8 @@ __all__ = [
     "load_config",
     "load_raw",
     "split_cities",
+    "duplicate_report",
+    "missing_report",
     "build_pipelines",
     "make_city_pipeline",
     "DengueImputer",

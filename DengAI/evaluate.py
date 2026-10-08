@@ -28,6 +28,40 @@ def missing_report(df):
     return out[out["missing"] > 0].sort_values("missing", ascending=False)
 
 
+KEY = ("city", "year", "weekofyear")
+
+
+def duplicate_report(df, labels=None, key=KEY):
+    """Duplicate rows, duplicate keys, feature/label mismatches and identical columns.
+
+    One row per check with a count and, where useful, the offending names. A clean
+    dataset shows zeros everywhere except ``identical columns``, which flags
+    ``reanalysis_sat_precip_amt_mm`` as a copy of ``precipitation_amt_mm``.
+    """
+    key = list(key)
+    rows = {
+        "duplicated rows": (int(df.duplicated().sum()), ""),
+        f"duplicated keys {key}": (int(df.duplicated(key).sum()), ""),
+    }
+    if "week_start_date" in df.columns:
+        n = int(df.duplicated(["city", "week_start_date"]).sum())
+        rows["duplicated (city, week_start_date)"] = (n, "")
+    if labels is not None:
+        merged = df[key].merge(labels[key], how="outer", indicator=True)
+        rows["feature rows without a label"] = (int((merged["_merge"] == "left_only").sum()), "")
+        rows["label rows without features"] = (int((merged["_merge"] == "right_only").sum()), "")
+    numeric = df.select_dtypes("number")
+    cols = list(numeric.columns)
+    pairs = [
+        f"{a} == {b}"
+        for i, a in enumerate(cols)
+        for b in cols[i + 1 :]
+        if numeric[a].equals(numeric[b])
+    ]
+    rows["identical columns"] = (len(pairs), "; ".join(pairs))
+    return pd.DataFrame(rows, index=["count", "detail"]).T
+
+
 def make_cv(cfg=None):
     cfg = cfg or load_config()
     ev = cfg.models.evaluation
