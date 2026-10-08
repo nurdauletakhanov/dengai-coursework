@@ -51,6 +51,13 @@ model_features:
 feature_selection:
   n_features: 15
 
+# ---- ridge_rfe(**rfe_selection): the selector of the `rfe` branch ------------
+# Recursive elimination with Ridge(alpha); n_features is RFE's n_features_to_select.
+rfe_selection:
+  n_features: 50
+  alpha: 10.0
+  step: 0.2
+
 # ---- per-branch column lists ------------------------------------------------
 branches:
   # Input to the `seasonal` branch. `year` must come from this COLUMN, never from

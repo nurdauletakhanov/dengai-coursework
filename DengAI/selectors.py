@@ -8,6 +8,8 @@ from __future__ import annotations
 import tempfile
 
 from sklearn.base import BaseEstimator, TransformerMixin
+from sklearn.feature_selection import RFE
+from sklearn.linear_model import Ridge
 
 
 class CatBoostFeatureSelector(TransformerMixin, BaseEstimator):
@@ -57,3 +59,15 @@ class CatBoostFeatureSelector(TransformerMixin, BaseEstimator):
 
     def transform(self, X):
         return X[self.selected_features_]
+
+
+def ridge_rfe(n_features=50, alpha=10.0, step=0.2):
+    """Recursive feature elimination driven by a ridge regression.
+
+    The selector from ``experiments/xgboost_feature_selection.ipynb``, where it beat the
+    trees' own importances. It needs imputed, scaled input, which is why the ``rfe``
+    pipeline branch fills and scales *before* selecting. ``n_features`` is RFE's
+    ``n_features_to_select``, so grids address it as
+    ``select_features__n_features_to_select``.
+    """
+    return RFE(Ridge(alpha=alpha), n_features_to_select=n_features, step=step)

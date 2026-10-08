@@ -8,7 +8,7 @@ from sklearn.preprocessing import FunctionTransformer, StandardScaler
 
 from .config import load_config
 from .models import build_model
-from .selectors import CatBoostFeatureSelector
+from .selectors import CatBoostFeatureSelector, ridge_rfe
 from .transformers import (
     DengueImputer,
     WeatherHistoryTransformer,
@@ -17,7 +17,7 @@ from .transformers import (
 )
 
 #: ``"model"`` is always the final step, so grid keys stay ``model__*``.
-BRANCHES = ("tree", "dense", "time_series", "seasonal")
+BRANCHES = ("tree", "dense", "rfe", "time_series", "seasonal")
 
 
 def _weather_history(cfg):
@@ -30,10 +30,12 @@ def _weather_history(cfg):
 def make_city_pipeline(model, city="sj", branch="tree", cfg=None):
     """Build the pipeline for one city and one model.
 
-    Four branches:
+    Five branches:
 
     ``tree``        imputer -> history -> cyclical -> features -> select -> model
     ``dense``       the tree steps, then impute + scale (Ridge/Lasso reject NaN)
+    ``rfe``         imputer -> history -> cyclical -> features -> impute + scale
+                    -> Ridge-RFE selection -> model (XGBoost)
     ``time_series`` imputer -> history -> ColumnTransformer(date + scaled weather) -> model
     ``seasonal``    ColumnTransformer(year, weekofyear) -> model   (calendar only)
     """
@@ -82,18 +84,31 @@ def make_city_pipeline(model, city="sj", branch="tree", cfg=None):
                 ).set_output(transform="pandas"),
             )
         )
-    else:  # tree, dense
+    else:  # tree, dense, rfe
         drop = list(f.model_features.drop)
         steps += [
             ("cyclical", FunctionTransformer(cyclical_encoding, kw_args={"copy": True})),
             ("features", FunctionTransformer(model_features, kw_args={"drop": drop})),
-            ("select_features", CatBoostFeatureSelector(**f.feature_selection)),
         ]
-        if branch == "dense":
+        if branch == "rfe":
+            # Ridge cannot see NaN, so here fill + scale come BEFORE the selector.
             steps += [
-                ("fill", SimpleImputer(strategy="median", keep_empty_features=True)),
-                ("scale", StandardScaler()),
+                (
+                    "fill",
+                    SimpleImputer(strategy="median", keep_empty_features=True).set_output(
+                        transform="pandas"
+                    ),
+                ),
+                ("scale", StandardScaler().set_output(transform="pandas")),
+                ("select_features", ridge_rfe(**f.rfe_selection)),
             ]
+        else:
+            steps.append(("select_features", CatBoostFeatureSelector(**f.feature_selection)))
+            if branch == "dense":
+                steps += [
+                    ("fill", SimpleImputer(strategy="median", keep_empty_features=True)),
+                    ("scale", StandardScaler()),
+                ]
 
     return Pipeline(steps + [("model", model)])
 
