@@ -10,6 +10,7 @@ DengAI_notebook.ipynb             THE notebook - imports everything from DengAI/
 DengAI/                           the package: transformers, estimators, pipelines
   transformers.py                 DengueImputer, WeatherHistoryTransformer, cyclical_encoding
   selectors.py                    CatBoostFeatureSelector
+  plots.py                        presentation figures: city patterns, lag evidence, folds, pipeline, missingness
   models/                         ProphetRegressor, SARIMAXRegressor, seasonal baselines
   pipelines.py                    make_city_pipeline - four branches
   evaluate.py                     chronological CV, grid search, holdout, submissions
