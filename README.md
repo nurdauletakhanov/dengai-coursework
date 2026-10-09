@@ -81,7 +81,7 @@ so it must come after imputing and scaling rather than before, as the CatBoost s
 | catboost | 15.02 | 6.27 |
 | random_forest | 15.16 | 8.39 |
 | **shape_level** | 20.72 | **3.39** |
-| lasso | 21.16 | 4.50 |
+| lasso | 21.42 | 4.44 |
 | prophet | 21.78 | 7.16 |
 | seasonal_median | 23.49 | 4.41 |
 | ridge | 24.46 | 5.48 |

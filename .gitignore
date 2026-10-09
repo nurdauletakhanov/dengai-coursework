@@ -23,3 +23,6 @@ data/dengue_prepared.csv
 # Presentation build artifacts are committed (small, ~70 KB each)
 # nbconvert writes these alongside the notebook when it runs
 presentation/eda_figures/
+
+# Report drafts (not part of the submission repo)
+report/

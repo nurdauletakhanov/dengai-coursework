@@ -19,7 +19,7 @@ dependencies = [
 # Heavy extras - the package imports these lazily, so it works without them.
 catboost = ["catboost"]
 prophet  = ["prophet"]
-full     = ["catboost", "prophet", "cloudpickle", "tqdm_joblib"]
+full     = ["catboost", "prophet", "cloudpickle"]
 
 [tool.setuptools]
 packages = ["DengAI", "DengAI.models"]

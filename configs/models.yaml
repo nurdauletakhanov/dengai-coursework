@@ -122,7 +122,9 @@ models:
     branch: dense
     seed_param: random_state
     error_score: raise
-    params: {cv: 5, max_iter: 20000, n_jobs: 2}
+    # eps shortens the penalty path: the near-zero penalties never win and are the
+    # ones whose coordinate descent cannot converge on these collinear features.
+    params: {cv: 5, max_iter: 20000, n_jobs: 2, eps: 0.01}
     grid:
       select_features: [passthrough]
 

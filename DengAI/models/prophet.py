@@ -37,7 +37,19 @@ class ProphetRegressor(RegressorMixin, BaseEstimator):
         return frame
 
     def fit(self, X, y):
+        import logging
+
         from prophet import Prophet
+
+        # cmdstanpy configures its logger lazily, on first use, and that setup resets the
+        # level to DEBUG with an INFO handler. Trigger the (cached) setup first, then
+        # lower the level; this runs in every worker process, so no fit logs chains.
+        try:
+            from cmdstanpy.utils.logging import get_logger
+
+            get_logger().setLevel(logging.WARNING)
+        except ImportError:
+            logging.getLogger("cmdstanpy").setLevel(logging.WARNING)
 
         self.regressor_columns_ = X.columns.drop("week_start_date").tolist()
         self.model_ = Prophet(
