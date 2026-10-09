@@ -44,7 +44,7 @@ the system Python, which does not have catboost or prophet.
 
 One rule: **every mapping in the YAML is exactly the `__init__` kwargs of the object it
 configures**, expanded with `**`. There is no schema layer and no validation framework — a
-typo becomes a `TypeError` when the pipeline is built, which is the failure you want.
+typo becomes a `TypeError` when the pipeline is built.
 
 ```python
 from DengAI import load_config, build_pipelines
