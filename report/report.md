@@ -328,21 +328,6 @@ Three things stand out, independently of the exact decimals:
    rainfall contributes only about 8%; and the `year` column alone takes about 19%, i.e.
    case levels drift from year to year for reasons that are not weather.
 
-### 5.6 A note on the public leaderboard
-
-Four of the additional models were at some point submitted to the real DrivenData
-leaderboard from earlier, standalone feature sets (RandomForest 23.80, Ridge 27.00,
-seasonal median 26.46, shape × level 26.00); the final CatBoost/SARIMAX submission scores
-about 23. These numbers are not reproducible from the notebook's single
-consistent pipeline, and they disagree with the holdout ranking in an instructive way.
-Across the submitted models, local validation MAE correlated only ρ = −0.30 with the
-leaderboard score — mildly *inverted* — whereas the number of weeks a model was willing to
-predict above 50 cases correlated ρ = −0.90. Every validation window is drawn from
-ordinary years, so it rewards conservative prediction; the competition's test period is
-dominated by Puerto Rico's 2010 epidemic, the largest since surveillance began, which
-punishes exactly that. A model can be better on our holdout and worse on the
-leaderboard, and this is a property of the data.
-
 ## 6. Analysis of the results, real-world applicability and conclusion
 
 ### 6.1 What the experiments show
@@ -371,7 +356,7 @@ average error but does not show *when* errors occur or distinguish overpredictio
 underprediction. Although CatBoost achieved a low San Juan holdout MAE, the holdout plot
 shows it substantially underestimating the largest peak of that year. A model can obtain a
 reasonable average score while failing in exactly the weeks when an accurate forecast
-matters most. The leaderboard note above is the same phenomenon at a larger scale.
+matters most.
 
 Prophet performed worse than both CatBoost and SARIMAX in both cities. Its assumed trend
 plus seasonal structure appears too restrictive for abrupt, irregular epidemic dynamics.
@@ -470,8 +455,7 @@ the future into the past.
 
 It does not yet solve the broader problem of making reliable hospital decisions during
 dengue outbreaks. Its inputs are too narrow, its point forecasts carry no uncertainty,
-its average error hides failures at epidemic peaks, and a validation built from ordinary
-years can rank models differently from a test period dominated by an epidemic. It
+and its average error hides failures at epidemic peaks. It
 predicts patterns without establishing why they occur: a model that has never seen a
 mosquito cannot say what happens when the mosquitoes change. It should not be described
 as a causal model or deployed as the sole basis for allocating medical resources.
