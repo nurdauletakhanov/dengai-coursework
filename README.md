@@ -27,8 +27,6 @@ run_full_search.py                rebuild every model from scratch (~2h)
 archive/                          earlier exploratory work - nothing here is needed
 ```
 
-Everything resolves paths from the repo root, so the notebook runs from anywhere.
-
 ## Setup
 
 ```bash
