@@ -23,8 +23,8 @@ experiments/                      side experiments that are not part of the main
 presentation/                     slide decks and handouts (markdown + PDF)
 models/                           8 fitted pipelines (.pkl) + best_params_models.json
 submission.csv                    competition submission
-run_full_search.py                rebuild every model from scratch (~2h)
-archive/                          earlier exploratory work - nothing here is needed
+run_full_search.py                rebuild every model from scratch (~8h)
+archive/                          earlier exploratory work
 ```
 
 ## Setup
