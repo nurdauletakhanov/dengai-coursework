@@ -24,5 +24,6 @@ data/dengue_prepared.csv
 # nbconvert writes these alongside the notebook when it runs
 presentation/eda_figures/
 
-# Report drafts (not part of the submission repo)
-report/
+# The report itself is tracked; drafts and copies in the folder are not
+report/*
+!report/report.md
