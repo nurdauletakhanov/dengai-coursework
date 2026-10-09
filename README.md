@@ -42,8 +42,8 @@ the system Python, which does not have catboost or prophet.
 
 ## How configuration works
 
-One rule: **every mapping in the YAML is exactly the `__init__` kwargs of the object it
-configures**, expanded with `**`. There is no schema layer and no validation framework — a
+One rule: every mapping in the YAML is exactly the `__init__` kwargs of the object it
+configures, expanded with `**`. There is no schema layer and no validation framework — a
 typo becomes a `TypeError` when the pipeline is built.
 
 ```python
