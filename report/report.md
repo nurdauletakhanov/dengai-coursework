@@ -341,7 +341,7 @@ predict above 50 cases correlated ρ = −0.90. Every validation window is drawn
 ordinary years, so it rewards conservative prediction; the competition's test period is
 dominated by Puerto Rico's 2010 epidemic, the largest since surveillance began, which
 punishes exactly that. A model can be better on our holdout and worse on the
-leaderboard, and this is a property of the data, not a bug in the validation.
+leaderboard, and this is a property of the data.
 
 ## 6. Analysis of the results, real-world applicability and conclusion
 
@@ -427,9 +427,7 @@ groundwater edges and creating breeding sites in damaged or abandoned properties
 disaster dates, rainfall, flooding, housing damage and displacement could improve the
 description of exceptional periods. The largest San Juan peak in the data, in 1994,
 occurred in the year of the *Morris J. Berman* oil spill (7 January 1994). We found no
-study establishing a causal link between the spill and that outbreak; the event should
-be treated only as a candidate entry in a disaster log and tested empirically, not
-presented as an explanation.
+study establishing a causal link between the spill and that outbreak, however, this link seems plausible.
 
 ### 6.3 Applicability in a real-life scenario
 
