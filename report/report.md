@@ -2,9 +2,6 @@
 
 **Team:** Artem Perepelitsyn, Nurdaulet Akhanov, Aibota Sanatbyek
 
-> Every number comes from the clean, end-to-end run of the notebook and the project code;
-> only the leaderboard score in Section 5.6 is left for the team to confirm.
-
 ## 1. The problem and why it matters
 
 ### 1.1 Dengue and the forecasting task
@@ -336,7 +333,7 @@ Three things stand out, independently of the exact decimals:
 Four of the additional models were at some point submitted to the real DrivenData
 leaderboard from earlier, standalone feature sets (RandomForest 23.80, Ridge 27.00,
 seasonal median 26.46, shape × level 26.00); the final CatBoost/SARIMAX submission scores
-about 23 ⟨exact value to confirm⟩. These numbers are not reproducible from the notebook's single
+about 23. These numbers are not reproducible from the notebook's single
 consistent pipeline, and they disagree with the holdout ranking in an instructive way.
 Across the submitted models, local validation MAE correlated only ρ = −0.30 with the
 leaderboard score — mildly *inverted* — whereas the number of weeks a model was willing to
